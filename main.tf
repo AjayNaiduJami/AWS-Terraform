@@ -1,104 +1,85 @@
-# Create a new instance of the latest Ubuntu 14.04 on an
-# t2.micro node with an AWS Tag naming it "HelloWorld"
 provider "aws" {
   region = "ap-south-1"
 }
 
-resource "aws_instance" "Bastion_SVR" {
-  ami = "ami-0e55e373"
-  instance_type = "t2.micro"
-  tags = {
-    Name = "Bastion SVR"
-    Environment = "Test"
-    terraform = "Yes"
-  }
-}
-
-resource "aws_vpc" "main" {
+resource "aws_vpc" "BastianVPC" {
   cidr_block = "10.0.0.0/16"
-  
+    
   tags = {
-    Name = "Bastian VPC"
+    Name = "Bastian"
     Environment = "Test"
-    terraform = "Yes"
+    Terraform = "Yes"
   }
 }
 
-resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
+resource "aws_network_acl" "BastianACL" {
+  vpc_id = "${aws_vpc.BastianVPC.id}"
+
+  tags = {
+    Name = "ACL Bastian"
+    Environment = "Test"
+    Terraform = "Yes"
+  }
+}
+
+resource "aws_subnet" "BastianSubnet" {
+  vpc_id     = "${aws_vpc.BastianVPC.id}"
   cidr_block = "10.0.1.0/24"
-
-  tags = {
-    Name = "Bastian VPC"
+  availability_zone = "ap-south-1a"
+  
+    tags = {
+    Name = "Bastian"
     Environment = "Test"
-    terraform = "Yes"
+    Terraform = "Yes"
   }
 }
 
-resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
+resource "aws_internet_gateway" "BastianIGW" {
+  vpc_id = "${aws_vpc.BastianVPC.id}"
 }
-resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
+
+resource "aws_route_table" "BastianRT" {
+  vpc_id = "${aws_vpc.BastianVPC.id}"
 
   route {
-    cidr_block = "10.0.1.0/24"
-    gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-
-  route {
-        egress_only_gateway_id = "${aws_internet_gateway.gw.id}"
+    cidr_block = "10.0.1.0/16"
+    gateway_id = "${aws_internet_gateway.BastianIGW.id}"
   }
 
   tags = {
     Name = "RT Bastian"
     Environment = "Test"
-    terraform = "Yes"
+    Terraform = "Yes"
   }
 }
 
-resource "aws_network_acl" "main" {
-  vpc_id = "${aws_vpc.main.id}"
+resource "aws_security_group" "BastianSG" {
+  name        = "BastianSG"
+  description = "Allow http, https, SSH"
+  vpc_id = "${aws_vpc.BastianVPC.id}"
 
   egress {
-    protocol   = "tcp"
-    rule_no    = 200
-    action     = "allow"
-    from_port  = 443
-    to_port    = 443
-  }
-
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 100
-    action     = "allow"
-    from_port  = 80
-    to_port    = 80
+    from_port = 0
+    to_port = 65535
+    protocol = "all"
   }
 
   tags = {
-    Name = "ACL Bastian"
+    Name = "BastianSG"
     Environment = "Test"
-    terraform = "Yes"
+    Terraform = "Yes"
   }
 }
 
-resource "aws_security_group" "allow_tls" {
-  name        = "allow_tls"
-  description = "Allow TLS inbound traffic"
-
-  ingress {
-    # TLS (change to whatever ports you need)
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    # Please restrict your ingress to only necessary IPs and ports.
-    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
-  }
+resource "aws_instance" "BastianSVR" {
+  ami                    = "ami-0d2692b6acea72ee6"
+  instance_type          = "t2.micro"
+  subnet_id              = "${aws_subnet.BastianSubnet.id}"
+  associate_public_ip_address = "1"
 
   tags = {
-    Name = "allow_all"
+    Name = "Bastian SVR"
     Environment = "Test"
-    terraform = "Yes"
+    Terraform = "Yes"
   }
 }
