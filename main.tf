@@ -83,3 +83,6 @@ resource "aws_instance" "BastianSVR" {
     Terraform = "Yes"
   }
 }
+
+#For creating an instance under new VPC
+#Last updated on 11 july 2019 20:13 IST
