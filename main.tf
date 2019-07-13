@@ -78,6 +78,7 @@ resource "aws_instance" "BastianSVR" {
   subnet_id              = "${aws_subnet.BastianSubnet.id}"
   vpc_security_group_ids = [aws_security_group.BastianSG.id]
   associate_public_ip_address = "1"
+  key_name = "Terraform"
   
   tags = {
     Name = "Bastian SVR"
