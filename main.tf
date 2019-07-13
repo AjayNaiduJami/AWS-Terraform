@@ -12,16 +12,6 @@ resource "aws_vpc" "BastianVPC" {
   }
 }
 
-resource "aws_network_acl" "BastianACL" {
-  vpc_id = "${aws_vpc.BastianVPC.id}"
-
-  tags = {
-    Name = "ACL Bastian"
-    Environment = "Test"
-    Terraform = "Yes"
-  }
-}
-
 resource "aws_subnet" "BastianSubnet" {
   vpc_id     = "${aws_vpc.BastianVPC.id}"
   cidr_block = "10.0.1.0/24"
@@ -40,9 +30,9 @@ resource "aws_internet_gateway" "BastianIGW" {
 
 resource "aws_route_table" "BastianRT" {
   vpc_id = "${aws_vpc.BastianVPC.id}"
-
+    
   route {
-    cidr_block = "10.0.1.0/16"
+    cidr_block = "0.0.0.0/0"
     gateway_id = "${aws_internet_gateway.BastianIGW.id}"
   }
 
@@ -53,15 +43,26 @@ resource "aws_route_table" "BastianRT" {
   }
 }
 
+resource "aws_route_table_association" "RTABastian" {
+  subnet_id      = "${aws_subnet.BastianSubnet.id}"
+  route_table_id = "${aws_route_table.BastianRT.id}"
+}
+
 resource "aws_security_group" "BastianSG" {
   name        = "BastianSG"
   description = "Allow http, https, SSH"
-  vpc_id = "${aws_vpc.BastianVPC.id}"
 
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port = 0
-    to_port = 65535
-    protocol = "all"
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -75,8 +76,9 @@ resource "aws_instance" "BastianSVR" {
   ami                    = "ami-0d2692b6acea72ee6"
   instance_type          = "t2.micro"
   subnet_id              = "${aws_subnet.BastianSubnet.id}"
+  vpc_security_group_ids = [aws_security_group.BastianSG.id]
   associate_public_ip_address = "1"
-
+  
   tags = {
     Name = "Bastian SVR"
     Environment = "Test"
@@ -85,4 +87,4 @@ resource "aws_instance" "BastianSVR" {
 }
 
 #For creating an instance under new VPC
-#Last updated on 11 july 2019 20:13 IST
+#Last updated on 13 july 2019 16:03 IST
