@@ -50,6 +50,7 @@ resource "aws_route_table_association" "RTABastian" {
 
 resource "aws_security_group" "BastianSG" {
   name        = "BastianSG"
+  vpc_id = "${aws_vpc.BastianVPC.id}"
   description = "Allow http, https, SSH"
 
   ingress {
@@ -86,6 +87,3 @@ resource "aws_instance" "BastianSVR" {
     Terraform = "Yes"
   }
 }
-
-#For creating an instance under new VPC
-#Last updated on 13 july 2019 16:03 IST
