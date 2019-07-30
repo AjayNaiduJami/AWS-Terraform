@@ -54,16 +54,16 @@ resource "aws_security_group" "BastianSG" {
   description = "Allow http, https, SSH"
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_block = ["0.0.0.0/0"]
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_block = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -74,7 +74,7 @@ resource "aws_security_group" "BastianSG" {
 }
 
 resource "aws_instance" "BastianSVR" {
-  ami                    = "ami-0d2692b6acea72ee6"
+  ami                    = "ami-009110a2bf8d7dd0a"
   instance_type          = "t2.micro"
   subnet_id              = "${aws_subnet.BastianSubnet.id}"
   vpc_security_group_ids = [aws_security_group.BastianSG.id]
