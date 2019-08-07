@@ -77,7 +77,7 @@ resource "aws_instance" "BastianSVR" {
   ami                    = "ami-009110a2bf8d7dd0a"
   instance_type          = "t2.micro"
   subnet_id              = "${aws_subnet.BastianSubnet.id}"
-  vpc_security_group_ids = [aws_security_group.BastianSG.id]
+  vpc_security_group_ids = ["${aws_security_group.BastianSG.id}"]
   associate_public_ip_address = "1"
   key_name = "Terraform"
   
